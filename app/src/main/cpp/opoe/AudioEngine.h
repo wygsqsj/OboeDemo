@@ -7,6 +7,10 @@
 
 #include <oboe/AudioStream.h>
 #include <oboe/AudioStreamBuilder.h>
+#include "AudioEngine.h"
+#include "android_log.h"
+#include <iostream>
+#include <fstream>
 
 class AudioEngine {
 
@@ -16,9 +20,19 @@ public:
 
     ~AudioEngine();
 
-    void start();
+    void start(char *pcmPath);
+
+    void startRecord();
+
+    void stop();
 
 public:
+    bool isRecoding;
+    std::shared_ptr<oboe::AudioStream> stream;
+    char *pcmPath;
+    pthread_t recordThread;
+
+private:
 
 };
 

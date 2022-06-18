@@ -1,10 +1,15 @@
 package com.example.oboedemo;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.oboedemo.databinding.ActivityMainBinding;
 
@@ -24,21 +29,27 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Example of a call to a native method
-        TextView tv = binding.sampleText;
-        tv.setText(stringFromJNI());
+        requestRecordPermission();
     }
 
-    public void start(View view){
-
-    }
-
-    public void stop(View view){
-
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                123);
     }
 
 
-    public native String stringFromJNI();
-    public native void startRecord();
+    public void start(View view) {
+        startRecord(getExternalFilesDir("") + "/audio.pcm");
+    }
+
+    public void stop(View view) {
+        stopRecord();
+    }
+
+
+    public native void startRecord(String pcmPath);
+
     public native void stopRecord();
 }
