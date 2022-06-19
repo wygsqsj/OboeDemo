@@ -20,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
     }
 
+    private String mp3path;
+
     private ActivityMainBinding binding;
 
     @Override
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         requestRecordPermission();
+        mp3path = FileUtil.copyAssFileToSD(this, "渡口.mp3");
     }
 
     private void requestRecordPermission() {
@@ -48,8 +51,20 @@ public class MainActivity extends AppCompatActivity {
         stopRecord();
     }
 
+    public void startPlay(View view) {
+        startPlay(mp3path);
+    }
+
+    public void stopPlay(View view) {
+        stopPlay();
+    }
+
 
     public native void startRecord(String pcmPath);
 
     public native void stopRecord();
+
+    public native void startPlay(String mp3Path);
+
+    public native void stopPlay();
 }

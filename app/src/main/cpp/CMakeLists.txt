@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 project("oboedemo")
 
 #导入当前的cpp
-file(GLOB app_soures opoe/*.cpp)
+file(GLOB app_soures oboe/*.cpp)
 
 add_library(
         native-lib
@@ -13,7 +13,7 @@ add_library(
 find_library(log-lib
         log)
 
-set(OBOE_DIR  /Users/mac/studioWorkPlace/custom/oboe)
+set(OBOE_DIR  /Users/gaoruijia/android/oboe)
 
 add_subdirectory(${OBOE_DIR} ./oboe)
 

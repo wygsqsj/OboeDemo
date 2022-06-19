@@ -2,23 +2,23 @@
 // Created by DELL on 2022/6/18.
 //
 
-#include "AudioEngine.h"
+#include "AudioRecord.h"
 
-AudioEngine::AudioEngine() {
+AudioRecord::AudioRecord() {
 
 }
 
-AudioEngine::~AudioEngine() {
+AudioRecord::~AudioRecord() {
 
 }
 
 class MyCallback : public oboe::AudioStreamCallback {
 public:
-    AudioEngine *audioEngine;
+    AudioRecord *audioEngine;
 
     FILE *outFile;
 
-    MyCallback(AudioEngine *pEngine) {
+    MyCallback(AudioRecord *pEngine) {
         audioEngine = pEngine;
         outFile = fopen(audioEngine->pcmPath, "wb");
     }
@@ -51,40 +51,39 @@ public:
 
 
 void *startOfThread(void *args) {
-    AudioEngine *audioEngine = (AudioEngine *) args;
+    AudioRecord *audioEngine = (AudioRecord *) args;
     audioEngine->startRecord();
     //释放线程
     pthread_exit(&audioEngine->recordThread);
 }
 
 
-void AudioEngine::start(char *pcmPath) {
+void AudioRecord::start(char *pcmPath) {
     this->pcmPath = pcmPath;
     //耗时操作，放到子线程里面
     pthread_create(&recordThread, NULL, startOfThread, this);
 }
 
-void AudioEngine::stop() {
+void AudioRecord::stop() {
     isRecoding = false;
 }
 
-void AudioEngine::startRecord() {
+void AudioRecord::startRecord() {
     LOGI("当前pcmPath:%s", pcmPath);
 
     isRecoding = true;
 
-//    FILE *outFile = fopen(pcmPath, "wb");
-
     oboe::AudioStreamBuilder builder;
 
     builder.setDirection(oboe::Direction::Input)
-            ->setAudioApi(oboe::AudioApi::OpenSLES)
+            ->setAudioApi(oboe::AudioApi::AAudio)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
             ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::Float)
+            ->setFormat(oboe::AudioFormat::I16)
             ->setSampleRate(32000)
             ->setChannelCount(1)
-            ->setDataCallback(new MyCallback(this));
+//            ->setDataCallback(new MyCallback(this))
+            ;
 
 
     oboe::Result r = builder.openStream(stream);
@@ -98,9 +97,9 @@ void AudioEngine::startRecord() {
     }
 
     constexpr int kMillisecondsToRecord = 2;
-    const int32_t requestedFrames = (int32_t)
+    const auto requestedFrames = (int32_t)
             (kMillisecondsToRecord * stream->getSampleRate() / kMillisecondsToRecord);
-    int16_t mybuffer[requestedFrames];
+    float mybuffer[requestedFrames];
     constexpr int64_t kTimeoutValue = 3 * kMillisecondsToRecord;
 
     int framesRead = 0;
@@ -113,21 +112,23 @@ void AudioEngine::startRecord() {
         framesRead = result.value();
     } while (framesRead != 0);
 
-//    while (isRecoding) {
-//        auto result = stream->read(mybuffer, requestedFrames, kTimeoutValue);
-//        if (result == oboe::Result::OK) {
+    FILE *outFile = fopen(pcmPath, "wb");
+    while (isRecoding) {
+        auto result = stream->read(mybuffer, requestedFrames, kTimeoutValue);
+        if (result == oboe::Result::OK) {
 //            for (int i = 0; i < result.value(); ++i) {
 //                LOGI("当前获取录音数据,%hd", mybuffer[i]);
 //            }
-//            fwrite(mybuffer, result.value(), 1, outFile);
-//        } else {
-//            LOGE("当前获取录音数据失败：%s", convertToText(result.error()));
-//        }
-//    }
-//    LOGI("录音结束");
-//
-//    if (stream != nullptr) {
-//        stream->close();
-//        fclose(outFile);
-//    }
+            LOGI("当前获取录音数据,%d", result.value());
+            fwrite(mybuffer, result.value() * sizeof(int16_t), 1, outFile);
+        } else {
+            LOGE("当前获取录音数据失败：%s", convertToText(result.error()));
+        }
+    }
+    LOGI("录音结束");
+
+    if (stream != nullptr) {
+        stream->close();
+        fclose(outFile);
+    }
 }

@@ -2,23 +2,23 @@
 // Created by DELL on 2022/6/18.
 //
 
-#ifndef OBOEDEMO_AUDIOENGINE_H
-#define OBOEDEMO_AUDIOENGINE_H
+#ifndef OBOEDEMO_AUDIORECORD_H
+#define OBOEDEMO_AUDIORECORD_H
 
 #include <oboe/AudioStream.h>
 #include <oboe/AudioStreamBuilder.h>
-#include "AudioEngine.h"
+#include "AudioRecord.h"
 #include "android_log.h"
 #include <iostream>
 #include <fstream>
 
-class AudioEngine {
+class AudioRecord {
 
 
 public:
-    AudioEngine();
+    AudioRecord();
 
-    ~AudioEngine();
+    ~AudioRecord();
 
     void start(char *pcmPath);
 
@@ -37,4 +37,4 @@ private:
 };
 
 
-#endif //OBOEDEMO_AUDIOENGINE_H
+#endif //OBOEDEMO_AUDIORECORD_H
