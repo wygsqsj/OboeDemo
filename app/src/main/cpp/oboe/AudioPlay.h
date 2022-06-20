@@ -29,9 +29,22 @@ public:
 public:
     char *mp3Path;
     bool isPlay;
-    std::shared_ptr<oboe::AudioStream> stream = nullptr;
     pthread_t audioThread;
 private:
+    std::mutex         mLock;
+    std::shared_ptr<oboe::AudioStream> stream;
+
+    // Stream params
+    static int constexpr kChannelCount = 1;
+    static int constexpr kSampleRate = 32000;
+    // Wave params, these could be instance variables in order to modify at runtime
+    static float constexpr kAmplitude = 0.5f;
+    static float constexpr kFrequency = 440;
+    static float constexpr kPI = M_PI;
+    static float constexpr kTwoPi = kPI * 2;
+    static double constexpr mPhaseIncrement = kFrequency * kTwoPi / (double) kSampleRate;
+    // Keeps track of where the wave is
+    float mPhase = 0.0;
 
 };
 

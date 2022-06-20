@@ -13,7 +13,7 @@ add_library(
 find_library(log-lib
         log)
 
-set(OBOE_DIR  /Users/gaoruijia/android/oboe)
+set(OBOE_DIR /Users/mac/studioWorkPlace/custom/oboe)
 
 add_subdirectory(${OBOE_DIR} ./oboe)
 

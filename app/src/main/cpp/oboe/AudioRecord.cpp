@@ -12,44 +12,6 @@ AudioRecord::~AudioRecord() {
 
 }
 
-class MyCallback : public oboe::AudioStreamCallback {
-public:
-    AudioRecord *audioEngine;
-
-    FILE *outFile;
-
-    MyCallback(AudioRecord *pEngine) {
-        audioEngine = pEngine;
-        outFile = fopen(audioEngine->pcmPath, "wb");
-    }
-
-    oboe::DataCallbackResult
-    onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
-
-        auto *outputData = static_cast<float *>(audioData);
-
-//        const float amplitude = 0.2f;
-//        for (int i = 0; i < numFrames; ++i) {
-//            outputData[i] = ((float) drand48() - 0.5f) * 2 * amplitude;
-//        }
-
-        if (audioEngine->isRecoding && numFrames > 0) {
-            LOGI("当前获取录音数据成功%d", numFrames);
-//            fwrite(outputData, numFrames, 1, outFile);
-            return oboe::DataCallbackResult::Continue;
-        } else {
-            LOGI("录音结束");
-            if (audioEngine->stream != nullptr) {
-                audioEngine->stream->close();
-                fclose(outFile);
-            }
-        }
-
-//        return oboe::DataCallbackResult::Continue;
-    }
-};
-
-
 void *startOfThread(void *args) {
     AudioRecord *audioEngine = (AudioRecord *) args;
     audioEngine->startRecord();
@@ -81,6 +43,7 @@ void AudioRecord::startRecord() {
             ->setSharingMode(oboe::SharingMode::Exclusive)
             ->setFormat(oboe::AudioFormat::I16)
             ->setSampleRate(32000)
+//            ->setDeviceId(17)
             ->setChannelCount(1)
 //            ->setDataCallback(new MyCallback(this))
             ;
@@ -99,7 +62,7 @@ void AudioRecord::startRecord() {
     constexpr int kMillisecondsToRecord = 2;
     const auto requestedFrames = (int32_t)
             (kMillisecondsToRecord * stream->getSampleRate() / kMillisecondsToRecord);
-    float mybuffer[requestedFrames];
+    int16_t mybuffer[requestedFrames];
     constexpr int64_t kTimeoutValue = 3 * kMillisecondsToRecord;
 
     int framesRead = 0;
@@ -112,7 +75,7 @@ void AudioRecord::startRecord() {
         framesRead = result.value();
     } while (framesRead != 0);
 
-    FILE *outFile = fopen(pcmPath, "wb");
+    FILE *outFile = fopen(pcmPath, "wb+");
     while (isRecoding) {
         auto result = stream->read(mybuffer, requestedFrames, kTimeoutValue);
         if (result == oboe::Result::OK) {
