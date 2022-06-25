@@ -41,7 +41,7 @@ void AudioRecord::startRecord() {
             ->setAudioApi(oboe::AudioApi::AAudio)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
             ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::I16)
+            ->setFormat(oboe::AudioFormat::Float)
             ->setSampleRate(32000)
 //            ->setDeviceId(17)
             ->setChannelCount(1)
@@ -62,7 +62,8 @@ void AudioRecord::startRecord() {
     constexpr int kMillisecondsToRecord = 2;
     const auto requestedFrames = (int32_t)
             (kMillisecondsToRecord * stream->getSampleRate() / kMillisecondsToRecord);
-    int16_t mybuffer[requestedFrames];
+//    int16_t mybuffer[requestedFrames];
+    float mybuffer[requestedFrames];
     constexpr int64_t kTimeoutValue = 3 * kMillisecondsToRecord;
 
     int framesRead = 0;
@@ -76,6 +77,11 @@ void AudioRecord::startRecord() {
     } while (framesRead != 0);
 
     FILE *outFile = fopen(pcmPath, "wb+");
+    if (outFile != nullptr) {
+        LOGI("打开pcm 文件成功");
+    } else {
+        LOGI("打开pcm 文件失败");
+    }
     while (isRecoding) {
         auto result = stream->read(mybuffer, requestedFrames, kTimeoutValue);
         if (result == oboe::Result::OK) {
@@ -83,7 +89,14 @@ void AudioRecord::startRecord() {
 //                LOGI("当前获取录音数据,%hd", mybuffer[i]);
 //            }
             LOGI("当前获取录音数据,%d", result.value());
-            fwrite(mybuffer, result.value() * sizeof(int16_t), 1, outFile);
+//            if (outFile != nullptr) {
+//                fwrite(mybuffer, result.value() * sizeof(int16_t), 1, outFile);
+//            }
+
+            //写入float数据
+            if (outFile != nullptr) {
+                fwrite(mybuffer, result.value() * sizeof(float), 1, outFile);
+            }
         } else {
             LOGE("当前获取录音数据失败：%s", convertToText(result.error()));
         }
@@ -92,6 +105,8 @@ void AudioRecord::startRecord() {
 
     if (stream != nullptr) {
         stream->close();
-        fclose(outFile);
+        if (outFile != nullptr) {
+            fclose(outFile);
+        }
     }
 }

@@ -39,10 +39,10 @@
         android:id="@+id/btnStartPlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/btnStart"
         android:onClick="startPlay"
         android:text="startPlay"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnStart" />
 
     <Button
         android:id="@+id/btnStopPlay"
@@ -53,5 +53,34 @@
         android:text="stopPlay"
         app:layout_constraintStart_toEndOf="@+id/btnStartPlay"
         app:layout_constraintTop_toTopOf="@+id/btnStartPlay" />
+
+
+    <EditText
+        android:id="@+id/editReSampling"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnReSampling" />
+
+    <Button
+        android:id="@+id/btnReSampling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="startReSampling"
+        android:text="新版重采样"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnStartPlay" />
+
+
+    <Button
+        android:id="@+id/btnOldReSampling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:onClick="startOldReSampling"
+        android:text="旧版重采样"
+        app:layout_constraintStart_toEndOf="@+id/btnStartPlay"
+        app:layout_constraintTop_toBottomOf="@+id/btnStartPlay" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

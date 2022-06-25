@@ -16,7 +16,7 @@ AudioPlay::~AudioPlay() {
 
 }
 
-FILE *file = fopen("/storage/emulated/0/Android/data/com.example.oboedemo/files/audio.pcm", "rb");
+FILE *file = nullptr;
 int index = 0;
 long fileLength = 0;
 
@@ -28,7 +28,6 @@ void *startOfPlay(void *data) {
 void AudioPlay::start(char *mp3Path) {
     LOGI("当前线程 %d", gettid());
     this->mp3Path = mp3Path;
-    pthread_create(&audioThread, NULL, startOfPlay, this);
     startPlay();
 }
 
@@ -67,14 +66,21 @@ void AudioPlay::startPlay() {
      if (result != oboe::Result::OK) {
          LOGI("requestStart 失败");
      }*/
-
-    //获取pcm数据长度
-    int fd1 = fileno(file);
-    //将读写位置移到文件尾为了获取文件大小
-    fileLength = lseek(fd1, 0, SEEK_END);
-    //再设置偏移到文件开头
-    fseek(file, 0, SEEK_SET);
-
+    index = 0;
+//    file = fopen("/sdcard/Android/data/com.example.oboedemo/files/audio.pcm", "rb+");
+    file = fopen("/sdcard/Android/data/com.example.oboedemo/files/convertLaterFloat.pcm", "rb+");
+//    file = fopen("/sdcard/Android/data/com.example.oboedemo/files/convertLaterShort.pcm", "rb+");
+    if (file != nullptr) {
+        LOGI("获取file成功");
+        //获取pcm数据长度
+        int fd1 = fileno(file);
+        //将读写位置移到文件尾为了获取文件大小
+        fileLength = lseek(fd1, 0, SEEK_END);
+        //再设置偏移到文件开头
+        fseek(file, 0, SEEK_SET);
+    } else {
+        LOGI("获取file失败");
+    }
     LOGI("获取file长度,%ld", fileLength);
 
 
@@ -86,7 +92,7 @@ void AudioPlay::startPlay() {
             ->setChannelCount(kChannelCount)
             ->setSampleRate(kSampleRate)
             ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
-            ->setFormat(oboe::AudioFormat::I16)
+            ->setFormat(oboe::AudioFormat::Float)
             ->setDataCallback(this)
             ->openStream(stream);
 
@@ -113,17 +119,30 @@ void AudioPlay::stop() {
 oboe::DataCallbackResult
 AudioPlay::onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
     LOGI("播放回调，numFrames：%d,当前 index,%d,当前线程 %d", numFrames, index, gettid());
-/*
-//    //float数据先将pcm转换成float再塞入
-//    float *floatData = (float *) audioData;
+
+    //float数据先将pcm转换成float再塞入
 //    int16_t *pcmData = static_cast<int16_t *>(malloc(numFrames * sizeof(int16_t)));
 //    fread(pcmData, numFrames * sizeof(int16_t), 1, file);
-//    oboe::convertPcm16ToFloat(pcmData, static_cast<float *>(floatData), numFrames);
-*/
+//    oboe::convertPcm16ToFloat(pcmData, static_cast<float *>(audioData), numFrames);
+//    oboe::convertFloatToPcm16(static_cast<float *>(audioData), pcmData, numFrames);
 
-/*    // int16_t类型数据塞入数据
-    fread(audioData, numFrames * sizeof(int16_t), 1, file);*/
-    index += numFrames;
+//    //short数据,数据源是float，先将float转换成 short 再塞入
+//    float *pcmData = static_cast<float *>(malloc(numFrames * sizeof(float)));
+//    fread(pcmData, numFrames * sizeof(int16_t), 1, file);
+//    oboe::convertPcm16ToFloat(pcmData, static_cast<float *>(audioData), numFrames);
+//    oboe::convertFloatToPcm16(static_cast<float *>(audioData), pcmData, numFrames);
+
+
+    //直接写入float数据
+//    float *pcmData = static_cast<float *>(malloc(numFrames * sizeof(float)));
+    fread(audioData, numFrames * sizeof(float), 1, file);
+
+
+//    // int16_t类型数据塞入数据
+//    fread(audioData, numFrames * sizeof(int16_t), 1, file);
+
+    index += numFrames * sizeof(int16_t);
+//    index += numFrames * sizeof(float);
     LOGI("当前 index,%d", index);
     if (index < fileLength) {
         return oboe::DataCallbackResult::Continue;
