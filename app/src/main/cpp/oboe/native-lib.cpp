@@ -215,7 +215,7 @@ Java_com_example_oboedemo_MainActivity_startReSampling(JNIEnv *env, jobject thiz
     int floatPcmLength = curSLen / 2;
 
     //生成的全部数据
-    float *floatAllTarget = static_cast<float *>(malloc(sizeof(float) * sLen / sizeof(short)));
+    float *floatAllTarget = static_cast<float *>(malloc(sizeof(float) * beforeFileLength / 2));
 
     //不断塞入数据
     float *curFloatPcmArr = static_cast<float *>(malloc(sizeof(float) * floatPcmLength));
@@ -243,11 +243,11 @@ Java_com_example_oboedemo_MainActivity_startReSampling(JNIEnv *env, jobject thiz
                                   floatPcmLength);
 
         //设置重采样大小
-        resampleObj_calDataLength(resampleObj, curSLen / 2 * sizeof(float));
+        resampleObj_calDataLength(resampleObj, curSLen);
 
         //重采样
         int resLen = resampleObj_resample(resampleObj, curFloatPcmArr,
-                                          curSLen,
+                                          curSLen / 2,
                                           floatAllTarget + resFloatLength);
         oriFloatLength += curSLen / 2;
         resFloatLength += resLen;
